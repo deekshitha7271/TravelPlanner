@@ -44,6 +44,17 @@ def test_get_activities_sorted_by_date_and_time(client, trip):
     assert titles == ["Morning", "Evening", "Late"]
 
 
+def test_activities_without_time_come_last_on_their_day(client, trip):
+    url = f"/api/trips/{trip['id']}/activities"
+    client.post(url, json=activity_data(title="Anytime", date="2026-11-11", time=""))
+    client.post(url, json=activity_data(title="Evening", date="2026-11-11", time="20:00"))
+    client.post(url, json=activity_data(title="Morning", date="2026-11-11", time="08:00"))
+    client.post(url, json=activity_data(title="Next day", date="2026-11-12", time="07:00"))
+
+    titles = [a["title"] for a in client.get(url).get_json()]
+    assert titles == ["Morning", "Evening", "Anytime", "Next day"]
+
+
 def test_get_activities_only_returns_own_trip(client, trip, activity):
     other = client.post("/api/trips", json={
         "name": "Other", "destination": "Elsewhere",

@@ -16,7 +16,9 @@ def list_activities(trip_id):
         return jsonify(error="Trip not found"), 404
 
     rows = get_db().execute(
-        "SELECT * FROM activities WHERE trip_id = ? ORDER BY date, time, id", (trip_id,)
+        # Activities without a time go after the timed ones on the same day.
+        "SELECT * FROM activities WHERE trip_id = ? ORDER BY date, time = '', time, id",
+        (trip_id,),
     ).fetchall()
     return jsonify([dict(row) for row in rows])
 
